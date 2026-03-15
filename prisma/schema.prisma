@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  BANNED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum SwipeAction {
+  LIKE
+  PASS
+  SUPER_LIKE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  GIF
+  SYSTEM
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  FAKE_PROFILE
+  INAPPROPRIATE_CONTENT
+  UNDERAGE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTIONED
+  DISMISSED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  phone        String?    @unique
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  lastActive   DateTime   @default(now()) @map("last_active")
+
+  profile      Profile?
+
+  swipesGiven  Swipe[]    @relation("SwipesGiven")
+  swipesRecv   Swipe[]    @relation("SwipesReceived")
+
+  matchesA     Match[]    @relation("MatchUserA")
+  matchesB     Match[]    @relation("MatchUserB")
+
+  messagesSent Message[]  @relation("MessageSender")
+
+  reportsGiven Report[]   @relation("ReportsGiven")
+  reportsRecv  Report[]   @relation("ReportsReceived")
+
+  blocksGiven  Block[]    @relation("BlocksGiven")
+  blocksRecv   Block[]    @relation("BlocksReceived")
+
+  @@map("users")
+}
+
+model Profile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  displayName    String   @map("display_name")
+  birthdate      DateTime @db.Date
+  gender         Gender
+  bio            String?  @db.Text
+  // Store as [longitude, latitude] — use PostGIS for geo queries in production
+  locationLng    Float?   @map("location_lng")
+  locationLat    Float?   @map("location_lat")
+  searchRadiusKm Int      @default(50) @map("search_radius_km")
+  // Flexible filter preferences: { ageMin, ageMax, genders, ... }
+  preferences    Json     @default("{}")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos Photo[]
+
+  @@map("profiles")
+}
+
+model Photo {
+  id         String   @id @default(uuid()) @db.Uuid
+  profileId  String   @map("profile_id") @db.Uuid
+  url        String
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  sortOrder  Int      @default(0) @map("sort_order")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("photos")
+}
+
+model Swipe {
+  id        String      @id @default(uuid()) @db.Uuid
+  swiperId  String      @map("swiper_id") @db.Uuid
+  swipedId  String      @map("swiped_id") @db.Uuid
+  action    SwipeAction
+  swipedAt  DateTime    @default(now()) @map("swiped_at")
+
+  swiper User @relation("SwipesGiven",    fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped User @relation("SwipesReceived", fields: [swipedId], references: [id], onDelete: Cascade)
+
+  // A user can only swipe on another user once
+  @@unique([swiperId, swipedId])
+  @@index([swipedId])
+  @@map("swipes")
+}
+
+model Match {
+  id        String   @id @default(uuid()) @db.Uuid
+  userAId   String   @map("user_a_id") @db.Uuid
+  userBId   String   @map("user_b_id") @db.Uuid
+  matchedAt DateTime @default(now()) @map("matched_at")
+  isActive  Boolean  @default(true) @map("is_active")
+
+  userA    User      @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User      @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  // Enforce userA < userB to prevent duplicate match rows
+  @@unique([userAId, userBId])
+  @@index([userBId])
+  @@map("matches")
+}
+
+model Message {
+  id       String      @id @default(uuid()) @db.Uuid
+  matchId  String      @map("match_id") @db.Uuid
+  senderId String      @map("sender_id") @db.Uuid
+  content  String      @db.Text
+  type     MessageType @default(TEXT)
+  sentAt   DateTime    @default(now()) @map("sent_at")
+  readAt   DateTime?   @map("read_at")
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, sentAt])
+  @@map("messages")
+}
+
+model Report {
+  id         String       @id @default(uuid()) @db.Uuid
+  reporterId String       @map("reporter_id") @db.Uuid
+  reportedId String       @map("reported_id") @db.Uuid
+  reason     ReportReason
+  details    String?      @db.Text
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  reporter User @relation("ReportsGiven",    fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(uuid()) @db.Uuid
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("BlocksGiven",    fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
+}
