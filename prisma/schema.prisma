@@ -11,267 +11,145 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-enum UserStatus {
-  UNVERIFIED
-  ACTIVE
-  SUSPENDED
-  DEACTIVATED
-  BANNED
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  NON_BINARY
-  OTHER
-  PREFER_NOT_TO_SAY
-}
-
-enum SwipeAction {
-  LIKE
-  PASS
-  SUPER_LIKE
-}
-
-enum MessageType {
-  TEXT
-  IMAGE
-  GIF
-  SYSTEM
-}
-
-enum ReportReason {
-  SPAM
-  HARASSMENT
-  FAKE_PROFILE
-  INAPPROPRIATE_CONTENT
-  UNDERAGE
-  OTHER
-}
-
-enum ReportStatus {
-  PENDING
-  REVIEWED
-  ACTIONED
-  DISMISSED
-}
-
-enum Roles {
-  ADMIN
-  USER
-}
-
-// ─── Models ───────────────────────────────────────────────────────────────────
-
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  email        String     @unique
-  username     String     @unique
-  passwordHash String     @map("password_hash")
-  phone        String?    @unique
-  status       UserStatus @default(UNVERIFIED)
-  createdAt    DateTime   @default(now()) @map("created_at")
-  lastActive   DateTime   @default(now()) @map("last_active")
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  role         Roles      @default(USER)
+  profile       Profile?
+  sentSwipes    Swipe[]   @relation("SentSwipes")
+  receivedSwipes Swipe[]  @relation("ReceivedSwipes")
+  matchesAsInitiator Match[] @relation("MatchesAsInitiator")
+  matchesAsTarget Match[]   @relation("MatchesAsTarget")
+  messagesSent  Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+  photos        Photo[]
 
-  profile      Profile?
-
-  swipesGiven  Swipe[]    @relation("SwipesGiven")
-  swipesRecv   Swipe[]    @relation("SwipesReceived")
-
-  matchesA     Match[]    @relation("MatchUserA")
-  matchesB     Match[]    @relation("MatchUserB")
-
-  messagesSent Message[]  @relation("MessageSender")
-
-  reportsGiven Report[]   @relation("ReportsGiven")
-  reportsRecv  Report[]   @relation("ReportsReceived")
-
-  blocksGiven  Block[]    @relation("BlocksGiven")
-  blocksRecv   Block[]    @relation("BlocksReceived")
-
-  // --- auth tokens ---
-  refreshTokens       RefreshToken[]
-  emailVerifyTokens   EmailVerificationToken[]
-  passwordResetTokens PasswordResetToken[]
+  tokens  RefreshToken[]
 
   @@map("users")
 }
 
-model RefreshToken {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @map("user_id") @db.Uuid
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash         String    @unique
-  deviceInfo        Json?     @map("device_info")   // { userAgent, ip, deviceId }
-  issuedAt          DateTime  @default(now()) @map("issued_at")
-  expiresAt         DateTime  @default(dbgenerated("NOW() + INTERVAL '30 days'")) @map("expires_at")
-  revoked           Boolean   @default(false)
-  revokeReason      String?   @map("revoke_reason") // 'logout' | 'reuse_detected' | 'admin' | 'password_change'
-
-  @@index([userId])
-  @@index([expiresAt])
-  @@map("refresh_tokens")
-}
-
-model EmailVerificationToken {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    String    @map("user_id") @db.Uuid
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  tokenHash String    @unique @map("token_hash")
-
-  issuedAt  DateTime  @default(now()) @map("issued_at")
-  expiresAt DateTime  @default(dbgenerated("NOW() + INTERVAL '24 hours'")) @map("expires_at")
-
-  used      Boolean   @default(false)
-  usedAt    DateTime? @map("used_at")
-
-  ipAddress String?   @map("ip_address")
-
-  @@index([userId])
-  @@index([expiresAt])
-  @@map("email_verification_tokens")
-}
-
-model PasswordResetToken {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @map("user_id") @db.Uuid
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  tokenHash     String    @unique @map("token_hash")
-  emailSnapshot String    @map("email_snapshot")  // snapshot of email at time of request
-
-  issuedAt      DateTime  @default(now()) @map("issued_at")
-  expiresAt     DateTime  @default(dbgenerated("NOW() + INTERVAL '1 hour'")) @map("expires_at")
-
-  used          Boolean   @default(false)
-  usedAt        DateTime? @map("used_at")
-
-  invalidated   Boolean   @default(false)
-  invalidatedAt DateTime? @map("invalidated_at")
-
-  ipAddress     String?   @map("ip_address")
-  userAgent     String?   @map("user_agent")
-
-  @@index([userId])
-  @@index([expiresAt])
-  @@map("password_reset_tokens")
-}
-
-
 model Profile {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @unique @map("user_id") @db.Uuid
-  displayName    String   @map("display_name")
-  birthdate      DateTime @db.Date
-  gender         Gender
-  bio            String?  @db.Text
-  // Store as [longitude, latitude] — use PostGIS for geo queries in production
-  locationLng    Float?   @map("location_lng")
-  locationLat    Float?   @map("location_lat")
-  searchRadiusKm Int      @default(50) @map("search_radius_km")
-  // Flexible filter preferences: { ageMin, ageMax, genders, ... }
-  preferences    Json     @default("{}")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  age         Int
+  phone       String?
+  gender      Gender
+  seeking     Seeking
+  bio         String?
+  location    String?
+  interests   String[] // e.g., ["hiking", "music"]
+  latitude    Float?
+  longitude   Float?
+  updatedAt   DateTime @updatedAt
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  photos Photo[]
-
+  @@index([gender])
+  @@index([seeking])
+  @@index([location])
   @@map("profiles")
 }
 
-model Photo {
-  id         String   @id @default(uuid()) @db.Uuid
-  profileId  String   @map("profile_id") @db.Uuid
-  url        String
-  isPrimary  Boolean  @default(false) @map("is_primary")
-  sortOrder  Int      @default(0) @map("sort_order")
-  uploadedAt DateTime @default(now()) @map("uploaded_at")
-
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  @@map("photos")
-}
-
 model Swipe {
-  id        String      @id @default(uuid()) @db.Uuid
-  swiperId  String      @map("swiper_id") @db.Uuid
-  swipedId  String      @map("swiped_id") @db.Uuid
-  action    SwipeAction
-  swipedAt  DateTime    @default(now()) @map("swiped_at")
+  id           String   @id @default(cuid())
+  swiperId     String
+  swipedId     String
+  action       SwipeAction @default(LIKE)
+  createdAt    DateTime @default(now())
 
-  swiper User @relation("SwipesGiven",    fields: [swiperId], references: [id], onDelete: Cascade)
-  swiped User @relation("SwipesReceived", fields: [swipedId], references: [id], onDelete: Cascade)
+  swiper       User     @relation("SentSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped       User     @relation("ReceivedSwipes", fields: [swipedId], references: [id], onDelete: Cascade)
 
-  // A user can only swipe on another user once
   @@unique([swiperId, swipedId])
   @@index([swipedId])
   @@map("swipes")
 }
 
 model Match {
-  id        String   @id @default(uuid()) @db.Uuid
-  userAId   String   @map("user_a_id") @db.Uuid
-  userBId   String   @map("user_b_id") @db.Uuid
-  matchedAt DateTime @default(now()) @map("matched_at")
-  isActive  Boolean  @default(true) @map("is_active")
+  id           String   @id @default(cuid())
+  initiatorId  String
+  targetId     String
+  createdAt    DateTime @default(now())
+  messages     Message[]
 
-  userA    User      @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
-  userB    User      @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
-  messages Message[]
+  initiator    User     @relation("MatchesAsInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  target       User     @relation("MatchesAsTarget", fields: [targetId], references: [id], onDelete: Cascade)
 
-  // Enforce userA < userB to prevent duplicate match rows
-  @@unique([userAId, userBId])
-  @@index([userBId])
+  @@unique([initiatorId, targetId])
   @@map("matches")
 }
 
 model Message {
-  id       String      @id @default(uuid()) @db.Uuid
-  matchId  String      @map("match_id") @db.Uuid
-  senderId String      @map("sender_id") @db.Uuid
-  content  String      @db.Text
-  type     MessageType @default(TEXT)
-  sentAt   DateTime    @default(now()) @map("sent_at")
-  readAt   DateTime?   @map("read_at")
+  id          String   @id @default(cuid())
+  matchId     String?
+  senderId    String
+  receiverId  String
+  content     String
+  createdAt   DateTime @default(now())
+  readAt      DateTime?
 
-  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  sender User  @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  match       Match?   @relation(fields: [matchId], references: [id])
+  sender      User     @relation("MessagesSent", fields: [senderId], references: [id])
+  receiver    User     @relation("MessagesReceived", fields: [receiverId], references: [id])
 
-  @@index([matchId, sentAt])
+  @@index([matchId])
+  @@index([senderId])
+  @@index([receiverId])
   @@map("messages")
 }
 
-model Report {
-  id         String       @id @default(uuid()) @db.Uuid
-  reporterId String       @map("reporter_id") @db.Uuid
-  reportedId String       @map("reported_id") @db.Uuid
-  reason     ReportReason
-  details    String?      @db.Text
-  status     ReportStatus @default(PENDING)
-  createdAt  DateTime     @default(now()) @map("created_at")
+model Photo {
+  id        String @id @default(cuid())
+  userId    String
+  url       String
+  isPrimary Boolean @default(false)
+  createdAt DateTime @default(now())
 
-  reporter User @relation("ReportsGiven",    fields: [reporterId], references: [id], onDelete: Cascade)
-  reported User @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([status])
-  @@map("reports")
+  @@unique([userId, isPrimary])
+  @@index([userId])
+  @@map("photos")
 }
 
-model Block {
-  id        String   @id @default(uuid()) @db.Uuid
-  blockerId String   @map("blocker_id") @db.Uuid
-  blockedId String   @map("blocked_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
+model RefreshToken {
+  id        String      @id @default(cuid())
+  tokenHash String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revokedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
-  blocker User @relation("BlocksGiven",    fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
 
-  @@unique([blockerId, blockedId])
-  @@map("blocks")
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
+
+enum Seeking {
+  MALE
+  FEMALE
+  EVERYONE
+}
+
+enum SwipeAction {
+  LIKE
+  PASS
 }
