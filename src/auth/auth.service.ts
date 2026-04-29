@@ -82,12 +82,12 @@ export class AuthService {
     };
 
     const accessToken = this.jwt.sign(payload, {
-      secret: 'ACCESS_TOKEN',
+      secret: process.env.ACCESS_SECRET,
       expiresIn: '15m',
     });
 
     const refreshToken = this.jwt.sign(payload, {
-      secret: 'REFRESH_TOKEN',
+      secret: process.env.REFRESH_SECRET,
       expiresIn: '7d',
     });
 
@@ -122,7 +122,7 @@ export class AuthService {
 
   async refresh(oldToken: string) {
     const payload = await this.jwt.verify(oldToken, {
-      secret: 'REFRESH_TOKEN',
+      secret: process.env.REFRESH_SECRET,
     });
 
     const userId = payload.sub;
@@ -154,12 +154,12 @@ export class AuthService {
     };
 
     const accessToken = this.jwt.sign(newPayload, {
-      secret: 'ACCESS_TOKEN',
+      secret: process.env.ACCESS_SECRET,
       expiresIn: '15m',
     });
 
     const refreshToken = this.jwt.sign(newPayload, {
-      secret: 'REFRESH_TOKEN',
+      secret: process.env.REFRESH_SECRET,
       expiresIn: '7d',
     });
 
@@ -177,7 +177,7 @@ export class AuthService {
 
   async logout(token: string) {
     const payload = await this.jwt.verify(token, {
-      secret: 'REFRESH_TOKEN',
+      secret: process.env.REFRESH_SECRET,
     });
 
     await this.prisma.refreshToken.updateMany({

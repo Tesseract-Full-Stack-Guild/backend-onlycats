@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -11,61 +6,75 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 model User {
-  id            String    @id @default(cuid())
-  username      String    @unique
-  email         String    @unique
-  emailVerified DateTime?
-  passwordHash  String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  profile       Profile?
-  sentSwipes    Swipe[]   @relation("SentSwipes")
-  receivedSwipes Swipe[]  @relation("ReceivedSwipes")
-  matchesAsInitiator Match[] @relation("MatchesAsInitiator")
-  matchesAsTarget Match[]   @relation("MatchesAsTarget")
-  messagesSent  Message[] @relation("MessagesSent")
-  messagesReceived Message[] @relation("MessagesReceived")
-  photos        Photo[]
-
-  tokens  RefreshToken[]
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  emailVerified      DateTime?
+  passwordHash       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  username           String         @unique
+  role               Role           @default(USER)
+  lastActive         DateTime       @default(now())
+  isActive           Boolean        @default(true)
+  tokens             RefreshToken[]
+  matchesAsInitiator Match[]        @relation("MatchesAsInitiator")
+  matchesAsTarget    Match[]        @relation("MatchesAsTarget")
+  messagesReceived   Message[]      @relation("MessagesReceived")
+  messagesSent       Message[]      @relation("MessagesSent")
+  profile            Profile?
+  receivedSwipes     Swipe[]        @relation("ReceivedSwipes")
+  sentSwipes         Swipe[]        @relation("SentSwipes")
+  blockedUsers       BlockedUser[]  @relation("UserBlocks")
+  blockedBy          BlockedUser[]  @relation("BlockedBy")
+  reportsSent        Report[]       @relation("ReportsSent")
+  reportsReceived    Report[]       @relation("ReportsReceived")
+  pushTokens         PushToken[]
+  searchHistory      SearchHistory[]
 
   @@map("users")
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  age         Int
-  phone       String?
-  gender      Gender
-  seeking     Seeking
-  bio         String?
-  location    String?
-  interests   String[] // e.g., ["hiking", "music"]
-  latitude    Float?
-  longitude   Float?
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  name          String
+  age           Int
+  gender        Gender
+  seeking       Seeking
+  bio           String?
+  location      String?
+  interests     String[]
+  latitude      Float?
+  longitude     Float?
+  updatedAt     DateTime @updatedAt
+  phone         String?
+  dorm          String?
+  major         String?
+  year          Int?
+  college       String?
+  course        String?
+  sameMajorOnly Boolean  @default(false)
+  photos        Photo[]
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([gender])
-  @@index([seeking])
-  @@index([location])
+  @@index([age])
+  @@index([gender, seeking])
+  @@index([major])
+  @@index([year])
+  @@index([dorm])
   @@map("profiles")
 }
 
 model Swipe {
-  id           String   @id @default(cuid())
-  swiperId     String
-  swipedId     String
-  action       SwipeAction @default(LIKE)
-  createdAt    DateTime @default(now())
-
-  swiper       User     @relation("SentSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
-  swiped       User     @relation("ReceivedSwipes", fields: [swipedId], references: [id], onDelete: Cascade)
+  id        String      @id @default(cuid())
+  swiperId  String
+  swipedId  String
+  action    SwipeAction @default(LIKE)
+  createdAt DateTime    @default(now())
+  swiped    User        @relation("ReceivedSwipes", fields: [swipedId], references: [id], onDelete: Cascade)
+  swiper    User        @relation("SentSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
 
   @@unique([swiperId, swipedId])
   @@index([swipedId])
@@ -73,31 +82,29 @@ model Swipe {
 }
 
 model Match {
-  id           String   @id @default(cuid())
-  initiatorId  String
-  targetId     String
-  createdAt    DateTime @default(now())
-  messages     Message[]
-
-  initiator    User     @relation("MatchesAsInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
-  target       User     @relation("MatchesAsTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  initiatorId String
+  targetId    String
+  createdAt   DateTime  @default(now())
+  initiator   User      @relation("MatchesAsInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  target      User      @relation("MatchesAsTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  messages    Message[]
 
   @@unique([initiatorId, targetId])
   @@map("matches")
 }
 
 model Message {
-  id          String   @id @default(cuid())
-  matchId     String?
-  senderId    String
-  receiverId  String
-  content     String
-  createdAt   DateTime @default(now())
-  readAt      DateTime?
-
-  match       Match?   @relation(fields: [matchId], references: [id])
-  sender      User     @relation("MessagesSent", fields: [senderId], references: [id])
-  receiver    User     @relation("MessagesReceived", fields: [receiverId], references: [id])
+  id         String    @id @default(cuid())
+  matchId    String?
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime  @default(now())
+  readAt     DateTime?
+  match      Match?    @relation(fields: [matchId], references: [id])
+  receiver   User      @relation("MessagesReceived", fields: [receiverId], references: [id])
+  sender     User      @relation("MessagesSent", fields: [senderId], references: [id])
 
   @@index([matchId])
   @@index([senderId])
@@ -106,30 +113,47 @@ model Message {
 }
 
 model Photo {
-  id        String @id @default(cuid())
-  userId    String
+  id        String   @id @default(cuid())
   url       String
-  isPrimary Boolean @default(false)
+  isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, isPrimary])
-  @@index([userId])
+  @@index([profileId])
   @@map("photos")
 }
 
 model RefreshToken {
-  id        String      @id @default(cuid())
+  id        String    @id @default(cuid())
   tokenHash String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   revokedAt DateTime?
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model MatchScore {
+  id             String   @id @default(cuid())
+  userAId        String
+  userBId        String
+  score          Float
+  majorBoost     Float
+  yearBoost      Float
+  dormBoost      Float
+  randomFactor   Float
+  lastCalculated DateTime @updatedAt
+  interestScore  Float
+  recencyBoost   Float
+
+  @@unique([userAId, userBId])
+  @@index([userAId, score])
+  @@index([userBId, score])
+  @@map("match_scores")
 }
 
 enum Role {
@@ -152,4 +176,85 @@ enum Seeking {
 enum SwipeAction {
   LIKE
   PASS
+}
+
+model BlockedUser {
+  id          String   @id @default(cuid())
+  blockerId   String
+  blockedUserId String
+  reason      String?
+  createdAt   DateTime @default(now())
+  blocker     User     @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedUser User     @relation("BlockedBy", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedUserId])
+  @@map("blocked_users")
+}
+
+model Report {
+  id        String        @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  details    String?
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  reporter   User          @relation("ReportsSent", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported   User          @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, reportedId])
+  @@index([reportedId])
+  @@index([status])
+  @@map("reports")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  device    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_tokens")
+}
+
+model SearchHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  query        String
+  resultsCount Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("search_history")
+}
+
+model AdminActionLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  targetId  String
+  targetType String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("admin_action_logs")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
 }

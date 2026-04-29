@@ -16,12 +16,12 @@ export class Tokens {
     };
 
     const accessToken = this.jwt.sign(payload, {
-      secret: 'ACCESS_TOKEN',
+      secret: process.env.ACCESS_SECRET,
       expiresIn: '15m',
     });
 
     const refreshToken = this.jwt.sign(payload, {
-      secret: 'REFRESH_TOKEN',
+      secret: process.env.REFRESH_SECRET,
       expiresIn: '7d',
     });
 

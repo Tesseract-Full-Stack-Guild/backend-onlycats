@@ -15,12 +15,14 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { RegistrationDto } from './dto/registration.dto.js';
 import { AuthGuard } from '@nestjs/passport';
-import { LoginDto } from './dto/login.dto.js';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Throttle({ default: { limit: 3, ttl: 60 } })
+  @HttpCode(201)
   @Post('register')
   async signUp(@Body() dto: RegistrationDto) {
     const res = await this.authService.signUp(dto);
@@ -28,6 +30,7 @@ export class AuthController {
     return res.message;
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60 } })
   @HttpCode(200)
   @UseGuards(AuthGuard('local'))
   @Post('login')
@@ -39,6 +42,7 @@ export class AuthController {
     return { success: true, message: 'Login Successful!' };
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60 } })
   @HttpCode(200)
   @Post('refresh')
   async refresh(
@@ -54,6 +58,8 @@ export class AuthController {
     return { success: true, message: 'Tokens Refreshed!' };
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60 } })
+  @HttpCode(200)
   @UseGuards(AuthGuard('local'))
   @Post('logOut')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {

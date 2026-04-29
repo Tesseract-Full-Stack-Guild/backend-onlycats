@@ -3,29 +3,48 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
   Req,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../../commons/guards/roles.guard.js';
-import { Roles } from '../../commons/decorators/roles.decorator.js';
-import { Role } from '../../commons/enums/roles.enum.js';
+import type { JwtPayload } from '../../types/express.js';
 import type { Request } from 'express';
 
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+@UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Roles(Role.USER)
   @Get('dashboard')
   async getUserDashboard(@Req() req: Request) {
-    console.log('Request cookies:', req.cookies);
-    console.log('Request headers:', req.headers.authorization);
-    return (await this.usersService.getUser(req)).message;
+    const user = req.user as JwtPayload;
+    return { message: `Welcome User: ${user.username}` };
+  }
+
+  @Post('deactivate')
+  @HttpCode(HttpStatus.OK)
+  async deactivateAccount(@Req() req: Request) {
+    const user = req.user as JwtPayload;
+    await this.usersService.deactivateAccount(user.userId);
+    return { success: true, message: 'Account deactivated' };
+  }
+
+  @Delete('account')
+  @HttpCode(HttpStatus.OK)
+  async deleteAccount(@Req() req: Request) {
+    const user = req.user as JwtPayload;
+    await this.usersService.deleteAccount(user.userId);
+    return { success: true, message: 'Account deleted' };
+  }
+
+  @Get('search')
+  async searchUsers(@Req() req: Request, @Body('query') query: string) {
+    const user = req.user as JwtPayload;
+    return this.usersService.searchUsers(query, user.userId);
   }
 }

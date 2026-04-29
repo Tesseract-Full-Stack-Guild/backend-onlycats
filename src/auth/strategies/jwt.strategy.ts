@@ -11,11 +11,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(),
         (req) => {
-          console.log('Cookie in strategy:', req?.cookies);
           return req?.cookies?.access_token;
         },
       ]),
-      secretOrKey: 'ACCESS_TOKEN',
+      secretOrKey: process.env.ACCESS_SECRET || 'dev_secret',
     });
   }
 
@@ -25,6 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id: payload.sub },
       select: {
         id: true,
+        username: true,
         email: true,
         role: true,
       },
@@ -37,6 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // ✅ This becomes req.user
     return {
       userId: user.id,
+      username: user.username,
       email: user.email,
       role: user.role,
     };
