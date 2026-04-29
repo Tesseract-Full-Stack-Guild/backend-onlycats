@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { Request } from 'express';
 
@@ -9,7 +14,11 @@ export class UsersService {
   async findAll(): Promise<any[] | null> {
     return this.prisma.user.findMany({
       where: { isActive: true },
-      select: { id: true, username: true, profile: { select: { name: true, age: true } } },
+      select: {
+        id: true,
+        username: true,
+        profile: { select: { name: true, age: true } },
+      },
     });
   }
 
@@ -47,7 +56,9 @@ export class UsersService {
 
   async searchUsers(query: string, currentUserId: string) {
     if (!query || query.length < 2) {
-      throw new BadRequestException('Search query must be at least 2 characters');
+      throw new BadRequestException(
+        'Search query must be at least 2 characters',
+      );
     }
 
     const users = await this.prisma.user.findMany({

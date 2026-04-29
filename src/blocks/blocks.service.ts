@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -66,7 +70,10 @@ export class BlocksService {
             id: true,
             username: true,
             profile: {
-              select: { name: true, photos: { where: { isPrimary: true }, take: 1 } },
+              select: {
+                name: true,
+                photos: { where: { isPrimary: true }, take: 1 },
+              },
             },
           },
         },
@@ -77,7 +84,12 @@ export class BlocksService {
 
   async isBlocked(userId: string, targetUserId: string): Promise<boolean> {
     const block = await this.prisma.blockedUser.findUnique({
-      where: { blockerId_blockedUserId: { blockerId: userId, blockedUserId: targetUserId } },
+      where: {
+        blockerId_blockedUserId: {
+          blockerId: userId,
+          blockedUserId: targetUserId,
+        },
+      },
     });
     return !!block;
   }

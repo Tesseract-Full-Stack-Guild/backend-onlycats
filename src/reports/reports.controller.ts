@@ -1,9 +1,18 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  Patch,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service.js';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles } from '../../commons/decorators/roles.decorator.js';
-import { RolesGuard } from '../../commons/guards/roles.guard.js';
-import { Role } from '../../commons/enums/roles.enum.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
+import { RolesGuard } from '../common/guards/roles.guard.js';
+import { Role } from '../common/enums/roles.enum.js';
 import type { JwtPayload } from '../../types/express.js';
 import type { Request } from 'express';
 
@@ -19,7 +28,12 @@ export class ReportsController {
     @Body() body: { reason: string; details?: string },
   ) {
     const currentUser = req.user as JwtPayload;
-    return this.reportsService.reportUser(currentUser.userId, userId, body.reason, body.details);
+    return this.reportsService.reportUser(
+      currentUser.userId,
+      userId,
+      body.reason,
+      body.details,
+    );
   }
 
   @Get()
@@ -37,7 +51,7 @@ export class ReportsController {
     @Body('status') status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED',
     @Req() req: Request,
   ) {
-    const adminId = (req.user as JwtPayload).userId!;
+    const adminId = (req.user as JwtPayload).userId;
     return this.reportsService.updateReportStatus(reportId, status, adminId);
   }
 }

@@ -8,7 +8,9 @@ export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
   async savePushToken(userId: string, token: string, device?: string) {
-    const existing = await this.prisma.pushToken.findUnique({ where: { token } });
+    const existing = await this.prisma.pushToken.findUnique({
+      where: { token },
+    });
     if (existing && existing.userId !== userId) {
       throw new BadRequestException('Token already registered to another user');
     }
@@ -25,13 +27,19 @@ export class NotificationsService {
       where: { userId },
     });
 
-    this.logger.log(`Would send push to ${tokens.length} tokens for user ${userId} (matched with ${matchedUserId})`);
+    this.logger.log(
+      `Would send push to ${tokens.length} tokens for user ${userId} (matched with ${matchedUserId})`,
+    );
 
     // Integrate FCM/APNS here:
     // await this.fcm.send({ token: tokens.map(t => t.token), notification: { title: 'New Match!', body: 'You matched with someone!' } });
   }
 
-  async sendMessageNotification(userId: string, senderId: string, messagePreview: string) {
+  async sendMessageNotification(
+    userId: string,
+    senderId: string,
+    messagePreview: string,
+  ) {
     // Similar implementation for message notifications
     this.logger.log(`Message notification for user ${userId} from ${senderId}`);
   }

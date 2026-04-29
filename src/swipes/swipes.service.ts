@@ -72,7 +72,9 @@ export class SwipesService {
 
     if (reverseSwipe && reverseSwipe.action === 'LIKE') {
       const match = await this.prisma.match.upsert({
-        where: { initiatorId_targetId: { initiatorId: swiperId, targetId: swipedId } },
+        where: {
+          initiatorId_targetId: { initiatorId: swiperId, targetId: swipedId },
+        },
         update: {},
         create: { initiatorId: swiperId, targetId: swipedId },
       });

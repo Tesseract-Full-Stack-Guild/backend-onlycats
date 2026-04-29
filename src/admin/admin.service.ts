@@ -53,7 +53,9 @@ export class AdminService {
   }
 
   async resolveReport(reportId: string, adminId: string) {
-    const report = await this.prisma.report.findUnique({ where: { id: reportId } });
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+    });
     if (!report) throw new Error('Report not found');
 
     await this.prisma.report.update({

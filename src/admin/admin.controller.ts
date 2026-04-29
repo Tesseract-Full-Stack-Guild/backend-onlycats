@@ -1,9 +1,17 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AdminService } from './admin.service.js';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles } from '../../commons/decorators/roles.decorator.js';
-import { RolesGuard } from '../../commons/guards/roles.guard.js';
-import { Role } from '../../commons/enums/roles.enum.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
+import { RolesGuard } from '../common/guards/roles.guard.js';
+import { Role } from '../common/enums/roles.enum.js';
 import type { JwtPayload } from '../../types/express.js';
 import type { Request } from 'express';
 
@@ -20,7 +28,7 @@ export class AdminController {
 
   @Post('users/:id/activate')
   async toggleUserActivation(@Param('id') userId: string, @Req() req: Request) {
-    const adminId = (req.user as JwtPayload).userId!;
+    const adminId = (req.user as JwtPayload).userId;
     return this.adminService.toggleUserActivation(userId, adminId);
   }
 
@@ -31,7 +39,7 @@ export class AdminController {
 
   @Post('reports/:id/resolve')
   async resolveReport(@Param('id') reportId: string, @Req() req: Request) {
-    const adminId = (req.user as JwtPayload).userId!;
+    const adminId = (req.user as JwtPayload).userId;
     return this.adminService.resolveReport(reportId, adminId);
   }
 

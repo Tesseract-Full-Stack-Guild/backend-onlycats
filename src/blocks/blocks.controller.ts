@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { BlocksService } from './blocks.service.js';
 import { AuthGuard } from '@nestjs/passport';
 import type { JwtPayload } from '../../types/express.js';
@@ -16,18 +25,18 @@ export class BlocksController {
     @Body('reason') reason?: string,
   ) {
     const currentUser = req.user as JwtPayload;
-    return this.blocksService.blockUser(currentUser.userId!, userId, reason);
+    return this.blocksService.blockUser(currentUser.userId, userId, reason);
   }
 
   @Delete(':userId')
   async unblockUser(@Req() req: Request, @Param('userId') userId: string) {
     const currentUser = req.user as JwtPayload;
-    return this.blocksService.unblockUser(currentUser.userId!, userId);
+    return this.blocksService.unblockUser(currentUser.userId, userId);
   }
 
   @Get()
   async getBlockedUsers(@Req() req: Request) {
     const currentUser = req.user as JwtPayload;
-    return this.blocksService.getBlockedUsers(currentUser.userId!);
+    return this.blocksService.getBlockedUsers(currentUser.userId);
   }
 }

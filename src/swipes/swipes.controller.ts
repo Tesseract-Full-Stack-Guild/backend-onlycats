@@ -58,7 +58,10 @@ export class SwipesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('unmatch/:matchedUserId')
-  async unmatch(@Req() req: Request, @Param('matchedUserId') matchedUserId: string) {
+  async unmatch(
+    @Req() req: Request,
+    @Param('matchedUserId') matchedUserId: string,
+  ) {
     const user = req.user as JwtPayload;
     return this.swipesService.unmatch(user.userId, matchedUserId);
   }

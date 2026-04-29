@@ -1,11 +1,21 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class ReportsService {
   constructor(private prisma: PrismaService) {}
 
-  async reportUser(reporterId: string, reportedId: string, reason: string, details?: string) {
+  async reportUser(
+    reporterId: string,
+    reportedId: string,
+    reason: string,
+    details?: string,
+  ) {
     if (reporterId === reportedId) {
       throw new ForbiddenException('Cannot report yourself');
     }
@@ -43,8 +53,14 @@ export class ReportsService {
     });
   }
 
-  async updateReportStatus(reportId: string, status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED', adminId: string) {
-    const report = await this.prisma.report.findUnique({ where: { id: reportId } });
+  async updateReportStatus(
+    reportId: string,
+    status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED',
+    adminId: string,
+  ) {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+    });
     if (!report) throw new NotFoundException('Report not found');
 
     await this.prisma.report.update({
