@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NotificationsService {
@@ -44,3 +44,4 @@ export class NotificationsService {
     this.logger.log(`Message notification for user ${userId} from ${senderId}`);
   }
 }
+

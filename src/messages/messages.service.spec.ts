@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MessagesService } from './messages.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { MessagesService } from './messages.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('MessagesService', () => {
   let service: MessagesService;
@@ -43,3 +43,4 @@ describe('MessagesService', () => {
     expect(service).toBeDefined();
   });
 });
+

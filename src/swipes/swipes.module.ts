@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { SwipesService } from './swipes.service';
 import { SwipesController } from './swipes.controller';
-import { PrismaModule } from '../prisma/prisma.module.js';
-import { BlocksModule } from '../blocks/blocks.module.js';
+import { PrismaModule } from '../prisma/prisma.module';
+import { BlocksModule } from '../blocks/blocks.module';
 
 @Module({
   imports: [PrismaModule, BlocksModule],
@@ -11,3 +11,4 @@ import { BlocksModule } from '../blocks/blocks.module.js';
   exports: [SwipesService],
 })
 export class SwipesModule {}
+

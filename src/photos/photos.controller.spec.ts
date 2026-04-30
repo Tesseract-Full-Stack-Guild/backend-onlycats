@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PhotosController } from './photos.controller.js';
-import { PhotosService } from './photos.service.js';
+import { PhotosController } from './photos.controller';
+import { PhotosService } from './photos.service';
 
 describe('PhotosController', () => {
   let controller: PhotosController;
@@ -23,3 +23,4 @@ describe('PhotosController', () => {
     expect(controller).toBeDefined();
   });
 });
+

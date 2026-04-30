@@ -11,10 +11,10 @@ import {
   HttpCode,
   Query,
 } from '@nestjs/common';
-import { MessagesService } from './messages.service.js';
-import { CreateMessageDto } from './dto/create-message.dto.js';
+import { MessagesService } from './messages.service';
+import { CreateMessageDto } from './dto/create-message.dto';
 import type { Request } from 'express';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('messages')
@@ -84,3 +84,4 @@ export class MessagesController {
     return this.messagesService.deleteMessage(messageId, user.userId);
   }
 }
+

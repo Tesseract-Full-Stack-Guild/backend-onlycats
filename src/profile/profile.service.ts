@@ -3,9 +3,9 @@ import {
   Injectable,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateProfileDto } from './dto/create-profile.dto.js';
-import { MatchingService } from '../matching/matching.service.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateProfileDto } from './dto/create-profile.dto';
+import { MatchingService } from '../matching/matching.service';
 
 @Injectable()
 export class ProfileService {
@@ -90,3 +90,4 @@ export class ProfileService {
     };
   }
 }
+

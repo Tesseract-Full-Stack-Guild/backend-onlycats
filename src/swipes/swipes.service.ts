@@ -4,8 +4,8 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { BlocksService } from '../blocks/blocks.service.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { BlocksService } from '../blocks/blocks.service';
 
 @Injectable()
 export class SwipesService {
@@ -278,3 +278,4 @@ export class SwipesService {
     return { success: true, message: 'Unmatched successfully' };
   }
 }
+

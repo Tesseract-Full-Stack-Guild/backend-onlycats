@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PhotosService } from './photos.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PhotosService } from './photos.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('PhotosService', () => {
   let service: PhotosService;
@@ -35,3 +35,4 @@ describe('PhotosService', () => {
     expect(service).toBeDefined();
   });
 });
+

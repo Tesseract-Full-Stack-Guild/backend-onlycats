@@ -6,7 +6,7 @@
  * Usage: npx ts-node src/tests/matching.test.ts
  */
 
-import { PrismaClient } from '../../generated/prisma/client.js';
+import { PrismaClient } from '../../generated/prisma/client';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -409,3 +409,4 @@ async function run() {
 }
 
 run().catch(console.error);
+

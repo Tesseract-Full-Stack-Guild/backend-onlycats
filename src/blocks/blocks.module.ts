@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { BlocksService } from './blocks.service.js';
-import { BlocksController } from './blocks.controller.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
+import { BlocksService } from './blocks.service';
+import { BlocksController } from './blocks.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
@@ -10,3 +10,4 @@ import { PrismaModule } from '../prisma/prisma.module.js';
   exports: [BlocksService],
 })
 export class BlocksModule {}
+

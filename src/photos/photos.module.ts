@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { PhotosService } from './photos.service.js';
-import { PhotosController } from './photos.controller.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
+import { PhotosService } from './photos.service';
+import { PhotosController } from './photos.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
@@ -9,3 +9,4 @@ import { PrismaModule } from '../prisma/prisma.module.js';
   providers: [PhotosService],
 })
 export class PhotosModule {}
+

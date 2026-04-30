@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import path from 'path';
 import * as fs from 'fs';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PhotosService {
@@ -69,6 +69,36 @@ export class PhotosService {
     };
   }
 
+  async setPrimaryPhoto(photoId: string, userId: string) {
+    const photo = await this.prisma.photo.findUnique({
+      where: { id: photoId },
+      include: { profile: true },
+    });
+
+    if (!photo) {
+      throw new NotFoundException('Photo not found');
+    }
+
+    if (photo.profile.userId !== userId) {
+      throw new ForbiddenException('You cannot modify this photo');
+    }
+
+    const profileId = photo.profileId;
+
+    // Clear existing primary, then set new one
+    await this.prisma.photo.updateMany({
+      where: { profileId },
+      data: { isPrimary: false },
+    });
+
+    await this.prisma.photo.update({
+      where: { id: photoId },
+      data: { isPrimary: true },
+    });
+
+    return { message: 'Primary photo updated' };
+  }
+
   async deletePhoto(photoId: string, userId: string) {
     // 🔥 1. Find photo
     const photo = await this.prisma.photo.findUnique({
@@ -113,8 +143,24 @@ export class PhotosService {
       where: { id: photoId },
     });
 
+    // 🔥 7. If deleted photo was primary, promote the most recently uploaded remaining photo
+    if (photo.isPrimary) {
+      const next = await this.prisma.photo.findFirst({
+        where: { profileId: photo.profileId },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (next) {
+        await this.prisma.photo.update({
+          where: { id: next.id },
+          data: { isPrimary: true },
+        });
+      }
+    }
+
     return {
       message: 'Photo deleted successfully',
+      wasPrimary: photo.isPrimary,
     };
   }
 }
+

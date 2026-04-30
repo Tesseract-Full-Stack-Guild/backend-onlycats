@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service';
 import type { Request } from 'express';
 
 @Injectable()
@@ -94,3 +94,4 @@ export class UsersService {
     }));
   }
 }
+

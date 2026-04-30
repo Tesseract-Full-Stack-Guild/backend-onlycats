@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module.js';
+import { AppModule } from './app.module';
 import {
   ValidationPipe,
   LoggerService,
@@ -10,9 +10,10 @@ import {
 import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import * as express from 'express';
-import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
+import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
 const uploadsDir = join(__dirname, '..', '..', 'uploads');
+const rootDir = join(__dirname, '..', '..');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,33 +25,48 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.use('/uploads', express.static(uploadsDir));
+  app.use('/test', express.static(rootDir, { index: 'index.html' }));
 
-  // Global validation
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+   // Global prefix - disabled to avoid conflict with versioning
+   // app.setGlobalPrefix('v1');
 
-  // CORS
-  const whitelist = process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:3000',
-    'http://localhost:5173',
-  ];
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (whitelist.includes(origin)) callback(null, true);
-      else callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-  });
+   // Global validation
+   app.useGlobalPipes(
+     new ValidationPipe({
+       whitelist: true,
+       forbidNonWhitelisted: true,
+       transform: true,
+       transformOptions: { enableImplicitConversion: true },
+     }),
+   );
 
-  // Versioning
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+    // CORS - flexible whitelist for development
+    const normalizeOrigin = (origin: string) => origin.replace(/\/+$/, '');
+    const envWhitelist = process.env.CORS_ORIGINS?.split(',').map(normalizeOrigin) || [];
+    
+    // Also allow any localhost port during development
+    const isLocalhost = (origin: string) => {
+      try {
+        const url = new URL(origin);
+        return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+      } catch {
+        return false;
+      }
+    };
+    
+    app.enableCors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalizedOrigin = normalizeOrigin(origin);
+        const isAllowed = envWhitelist.includes(normalizedOrigin) || isLocalhost(normalizedOrigin);
+        console.log(`[CORS] ${origin} -> ${isAllowed ? 'ALLOWED' : 'DENIED'} (whitelist: ${envWhitelist.join(', ') || 'empty'})`);
+        callback(null, isAllowed);
+      },
+      credentials: true,
+    });
+
+   // Versioning
+   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
   // Global error handler
   app.use(
@@ -73,3 +89,4 @@ async function bootstrap() {
   console.log(`Server running on port ${port}`);
 }
 bootstrap();
+

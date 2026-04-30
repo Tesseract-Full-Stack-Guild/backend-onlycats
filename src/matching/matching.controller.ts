@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards, Query } from '@nestjs/common';
 import { MatchingService } from './matching.service';
 import type { Request } from 'express';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('matches')
@@ -23,3 +23,4 @@ export class MatchingController {
     return this.matchingService.getMatches(user.userId, 20);
   }
 }
+

@@ -5,18 +5,19 @@ import {
   Body,
   Param,
   Delete,
+  Patch,
   UseInterceptors,
   UploadedFiles,
   Req,
   UseGuards,
   HttpCode,
 } from '@nestjs/common';
-import { PhotosService } from './photos.service.js';
+import { PhotosService } from './photos.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import type { Request } from 'express';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import { AuthGuard } from '@nestjs/passport';
 import { existsSync, mkdirSync } from 'fs';
 import { Throttle } from '@nestjs/throttler';
@@ -82,9 +83,19 @@ export class PhotosController {
   @Throttle({ default: { limit: 5, ttl: 60 } })
   @HttpCode(200)
   @UseGuards(AuthGuard('jwt'))
+  @Patch(':photoId/primary')
+  async setPrimaryPhoto(@Param('photoId') photoId: string, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.photosService.setPrimaryPhoto(photoId, user.userId);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60 } })
+  @HttpCode(200)
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':photoId')
   async deletePhoto(@Param('photoId') photoId: string, @Req() req: Request) {
     const user = req.user as JwtPayload;
     return this.photosService.deletePhoto(photoId, user.userId);
   }
 }
+

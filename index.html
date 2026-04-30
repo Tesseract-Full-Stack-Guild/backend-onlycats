@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dating App API Tester</title>
+  <style>
+    body { font-family: monospace; margin: 1rem; }
+    details { margin-bottom: 0.5rem; border: 1px solid #ccc; padding: 0.5rem; }
+    summary { cursor: pointer; font-weight: bold; font-size: 1rem; }
+    .section-body { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    input, select, textarea { font-family: monospace; }
+    #response-area { width: 100%; box-sizing: border-box; }
+    #response-pre { white-space: pre-wrap; word-break: break-all; border: 1px solid #aaa; padding: 0.5rem; min-height: 6rem; background: #f9f9f9; }
+    #ws-log { white-space: pre-wrap; word-break: break-all; border: 1px solid #aaa; padding: 0.5rem; min-height: 4rem; background: #f0f0f0; }
+    #ws-status { font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h2>Dating App API Tester — <small>http://localhost:3000/test</small></h2>
+
+<!-- Shared Response Area -->
+<div id="response-area">
+  <div class="row">
+    <strong>Response</strong>
+    <button onclick="clearResponse()">Clear Response</button>
+  </div>
+  <pre id="response-pre">— no request made yet —</pre>
+</div>
+
+<hr />
+
+<!-- 1. Status -->
+<details open>
+  <summary>1. Status</summary>
+  <div class="section-body">
+    <div class="row">
+      <button onclick="req('GET', '/health')">Health Check</button>
+      <button onclick="req('GET', '/')">Welcome</button>
+    </div>
+  </div>
+</details>
+
+<!-- 2. Auth -->
+<details>
+  <summary>2. Auth</summary>
+  <div class="section-body">
+
+    <fieldset>
+      <legend>Register</legend>
+      <div class="row">
+        <input id="reg-username" placeholder="username" />
+        <input id="reg-email" placeholder="email" type="email" />
+        <input id="reg-password" placeholder="password" type="password" />
+        <button onclick="authRegister()">Register</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Login</legend>
+      <div class="row">
+        <input id="login-usernameOrEmail" placeholder="username or email" />
+        <input id="login-password" placeholder="password" type="password" />
+        <button onclick="authLogin()">Login</button>
+      </div>
+    </fieldset>
+
+     <div class="row">
+       <button onclick="authRefresh()">Refresh Token</button>
+     </div>
+
+    <fieldset>
+      <legend>Logout</legend>
+      <div class="row">
+        <button onclick="authLogout()">Logout (Clear Tokens)</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Current Tokens</legend>
+      <div class="row">
+        <button onclick="showTokens()">Show Tokens</button>
+        <button onclick="clearTokens()">Clear Token Display</button>
+      </div>
+      <pre id="tokens-display" style="background:#f9f9f9;padding:0.5rem;border:1px solid #aaa;margin-top:0.5rem;min-height:3rem">— click "Show Tokens" —</pre>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 3. Users -->
+<details>
+  <summary>3. Users</summary>
+  <div class="section-body">
+    <div class="row">
+      <button onclick="req('GET', '/users/dashboard')">Dashboard</button>
+      <button onclick="req('POST', '/users/deactivate')">Deactivate Account</button>
+      <button onclick="req('DELETE', '/users/account')">Delete Account</button>
+    </div>
+    <fieldset>
+      <legend>Search Users</legend>
+      <div class="row">
+        <input id="search-query" placeholder="search query" />
+        <button onclick="usersSearch()">Search Users</button>
+      </div>
+    </fieldset>
+  </div>
+</details>
+
+<!-- 4. Profile -->
+<details>
+  <summary>4. Profile</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/profile')">Get All Profiles</button>
+    </div>
+
+    <fieldset>
+      <legend>Get Profile by ID</legend>
+      <div class="row">
+        <input id="profile-get-id" placeholder="profile id" />
+        <button onclick="profileGetById()">Get Profile</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Create / Update Profile</legend>
+      <div class="row">
+        <input id="p-name" placeholder="name" />
+        <input id="p-age" placeholder="age" type="number" />
+        <input id="p-phone" placeholder="phone (optional)" />
+      </div>
+      <div class="row">
+        <label>gender:
+          <select id="p-gender">
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+            <option value="NON_BINARY">NON_BINARY</option>
+          </select>
+        </label>
+        <label>seeking:
+          <select id="p-seeking">
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+            <option value="EVERYONE">EVERYONE</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <textarea id="p-bio" placeholder="bio (optional)" rows="2" cols="40"></textarea>
+      </div>
+      <div class="row">
+        <input id="p-location" placeholder="location (optional)" />
+        <input id="p-college" placeholder="college (optional)" />
+        <input id="p-course" placeholder="course (optional)" />
+        <input id="p-major" placeholder="major (optional)" />
+      </div>
+      <div class="row">
+        <label>year:
+          <select id="p-year">
+            <option value="">— none —</option>
+            <option value="1">1 - FRESHMAN</option>
+            <option value="2">2 - SOPHOMORE</option>
+            <option value="3">3 - JUNIOR</option>
+            <option value="4">4 - SENIOR</option>
+          </select>
+        </label>
+        <input id="p-dorm" placeholder="dorm (optional)" />
+        <label><input id="p-sameMajorOnly" type="checkbox" /> sameMajorOnly</label>
+      </div>
+      <div class="row">
+        <input id="p-interests" placeholder="interests (comma-separated, optional)" style="width:300px" />
+      </div>
+      <div class="row">
+        <button onclick="profileSubmit('POST')">Create Profile</button>
+        <button onclick="profileSubmit('PUT')">Update Profile</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 5. Photos -->
+<details>
+  <summary>5. Photos</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/photos')">Get My Photos</button>
+    </div>
+
+    <fieldset>
+      <legend>Upload Photos</legend>
+      <div class="row">
+        <input id="photo-files" type="file" multiple accept="image/*" />
+        <label><input id="photo-isPrimary" type="checkbox" /> isPrimary</label>
+        <button onclick="photosUpload()">Upload Photos</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Delete Photo</legend>
+      <div class="row">
+        <input id="photo-delete-id" placeholder="photoId" />
+        <button onclick="photoDelete()">Delete Photo</button>
+      </div>
+      <div id="primary-picker" style="display:none; margin-top:0.5rem;">
+        <strong>That was your primary photo. Pick a new one:</strong>
+        <div id="primary-picker-list" class="row" style="margin-top:0.25rem; flex-wrap:wrap;"></div>
+        <div class="row" style="margin-top:0.25rem;">
+          <button onclick="primaryPickerSkip()">Keep auto-assigned (most recent)</button>
+        </div>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 6. Swipes -->
+<details>
+  <summary>6. Swipes</summary>
+  <div class="section-body">
+
+    <fieldset>
+      <legend>Swipe</legend>
+      <div class="row">
+        <input id="swipe-swipedId" placeholder="swipedId" />
+        <label>action:
+          <select id="swipe-action">
+            <option value="LIKE">LIKE</option>
+            <option value="PASS">PASS</option>
+          </select>
+        </label>
+        <button onclick="swipeAction()">Swipe</button>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <button onclick="req('GET', '/swipes/my-swipes')">My Swipes</button>
+      <button onclick="req('GET', '/swipes/liked-me')">Who Liked Me</button>
+      <button onclick="req('GET', '/swipes/matches')">My Matches</button>
+      <button onclick="req('DELETE', '/swipes/undo')">Undo Last Swipe</button>
+    </div>
+
+    <fieldset>
+      <legend>Unmatch</legend>
+      <div class="row">
+        <input id="unmatch-userId" placeholder="matchedUserId" />
+        <button onclick="swipeUnmatch()">Unmatch</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 7. Matching -->
+<details>
+  <summary>7. Matching</summary>
+  <div class="section-body">
+    <div class="row">
+      <label>limit: <input id="match-limit" type="number" value="20" style="width:60px" /></label>
+      <button onclick="matchingGet()">Get Matches</button>
+      <button onclick="req('GET', '/matches/refresh')">Refresh Matches</button>
+    </div>
+  </div>
+</details>
+
+<!-- 8. Messages -->
+<details>
+  <summary>8. Messages</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/messages')">Get Conversations</button>
+      <button onclick="req('GET', '/messages/unread/count')">Unread Count</button>
+    </div>
+
+    <fieldset>
+      <legend>Get Messages by Match</legend>
+      <div class="row">
+        <input id="msg-get-matchId" placeholder="matchId" />
+        <button onclick="messagesGetByMatch()">Get Messages</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Send Message</legend>
+      <div class="row">
+        <input id="msg-send-matchId" placeholder="matchId (optional)" />
+        <input id="msg-send-receiverId" placeholder="receiverId (optional)" />
+      </div>
+      <div class="row">
+        <textarea id="msg-send-content" placeholder="message content" rows="2" cols="40"></textarea>
+      </div>
+      <div class="row">
+        <button onclick="messagesSend()">Send Message</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mark Read</legend>
+      <div class="row">
+        <input id="msg-read-id" placeholder="messageId" />
+        <button onclick="messageMarkRead()">Mark Read</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mark All Read in Match</legend>
+      <div class="row">
+        <input id="msg-readall-matchId" placeholder="matchId" />
+        <button onclick="messageMarkAllRead()">Mark All Read in Match</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Delete Message</legend>
+      <div class="row">
+        <input id="msg-delete-id" placeholder="messageId" />
+        <button onclick="messageDelete()">Delete Message</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 9. Blocks -->
+<details>
+  <summary>9. Blocks</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/blocks')">Get Blocked Users</button>
+    </div>
+
+    <fieldset>
+      <legend>Block User</legend>
+      <div class="row">
+        <input id="block-userId" placeholder="userId" />
+        <input id="block-reason" placeholder="reason (optional)" />
+        <button onclick="blockUser()">Block User</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Unblock User</legend>
+      <div class="row">
+        <input id="unblock-userId" placeholder="userId" />
+        <button onclick="unblockUser()">Unblock User</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 10. Reports -->
+<details>
+  <summary>10. Reports</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/reports')">Get All Reports (Admin)</button>
+    </div>
+
+    <fieldset>
+      <legend>Report User</legend>
+      <div class="row">
+        <input id="report-userId" placeholder="userId" />
+        <input id="report-reason" placeholder="reason" />
+      </div>
+      <div class="row">
+        <textarea id="report-details" placeholder="details (optional)" rows="2" cols="40"></textarea>
+      </div>
+      <div class="row">
+        <button onclick="reportUser()">Report User</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Update Report Status (Admin)</legend>
+      <div class="row">
+        <input id="report-update-id" placeholder="reportId" />
+        <label>status:
+          <select id="report-update-status">
+            <option value="PENDING">PENDING</option>
+            <option value="REVIEWED">REVIEWED</option>
+            <option value="RESOLVED">RESOLVED</option>
+            <option value="DISMISSED">DISMISSED</option>
+          </select>
+        </label>
+        <button onclick="reportUpdateStatus()">Update Status (Admin)</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 11. Admin -->
+<details>
+  <summary>11. Admin</summary>
+  <div class="section-body">
+
+    <div class="row">
+      <button onclick="req('GET', '/admin/users')">Get All Users (Admin)</button>
+      <button onclick="req('GET', '/admin/reports')">Get Reports (Admin)</button>
+      <button onclick="req('GET', '/admin/stats')">Get Stats (Admin)</button>
+    </div>
+
+    <fieldset>
+      <legend>Toggle Activation</legend>
+      <div class="row">
+        <input id="admin-toggle-userId" placeholder="userId" />
+        <button onclick="adminToggleActivation()">Toggle Activation (Admin)</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Resolve Report</legend>
+      <div class="row">
+        <input id="admin-resolve-reportId" placeholder="reportId" />
+        <button onclick="adminResolveReport()">Resolve Report (Admin)</button>
+      </div>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- 12. WebSocket -->
+<details>
+  <summary>12. WebSocket</summary>
+  <div class="section-body">
+
+    <fieldset>
+      <legend>Connect</legend>
+      <div class="row">
+        <input id="ws-userId" placeholder="userId" />
+        <button onclick="wsConnect()">Connect Messages WS</button>
+        <button onclick="wsDisconnect()">Disconnect</button>
+        <span>Status: <span id="ws-status">disconnected</span></span>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Send via WebSocket</legend>
+      <div class="row">
+        <input id="ws-send-matchId" placeholder="matchId (optional)" />
+        <input id="ws-send-receiverId" placeholder="receiverId (optional)" />
+        <input id="ws-send-content" placeholder="message content" style="width:200px" />
+        <button onclick="wsSendMessage()">Send via WS</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Incoming Messages Log</legend>
+      <div class="row">
+        <button onclick="document.getElementById('ws-log').textContent = ''">Clear WS Log</button>
+      </div>
+      <pre id="ws-log">— no messages yet —</pre>
+    </fieldset>
+
+  </div>
+</details>
+
+<!-- Socket.IO CDN -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+  const BASE = '/v1';
+  let socket = null;
+
+  // ── Shared response display ──────────────────────────────────────────────
+
+  function showResponse(method, url, status, data) {
+    const ts = new Date().toISOString();
+    const pre = document.getElementById('response-pre');
+    pre.textContent =
+      `[${ts}]\n${method} ${url}\nHTTP ${status}\n\n` +
+      JSON.stringify(data, null, 2);
+  }
+
+  function showError(method, url, err) {
+    const ts = new Date().toISOString();
+    const pre = document.getElementById('response-pre');
+    pre.textContent = `[${ts}]\n${method} ${url}\n\nError: ${err}`;
+  }
+
+  function clearResponse() {
+    document.getElementById('response-pre').textContent = '— cleared —';
+  }
+
+  // ── Generic fetch helper ─────────────────────────────────────────────────
+
+  async function req(method, path, body, isFormData) {
+    const url = BASE + path;
+    const opts = { method, credentials: 'include' };
+
+    if (body !== undefined && body !== null) {
+      if (isFormData) {
+        opts.body = body; // FormData — browser sets Content-Type automatically
+      } else {
+        opts.headers = { 'Content-Type': 'application/json' };
+        opts.body = JSON.stringify(body);
+      }
+    }
+
+    try {
+      const res = await fetch(url, opts);
+      let data;
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else {
+        data = await res.text();
+      }
+      showResponse(method, url, res.status, data);
+    } catch (err) {
+      showError(method, url, err.message);
+    }
+  }
+
+  // ── 2. Auth ──────────────────────────────────────────────────────────────
+
+  function authRegister() {
+    req('POST', '/auth/register', {
+      username: document.getElementById('reg-username').value,
+      email: document.getElementById('reg-email').value,
+      password: document.getElementById('reg-password').value,
+    });
+  }
+
+  function authLogin() {
+    req('POST', '/auth/login', {
+      usernameOrEmail: document.getElementById('login-usernameOrEmail').value,
+      password: document.getElementById('login-password').value,
+    });
+  }
+
+   function authRefresh() {
+     req('POST', '/auth/refresh');
+   }
+
+   function authLogout() {
+     req('POST', '/auth/logOut');
+   }
+
+   function showTokens() {
+     const accessToken = document.cookie.split(';').find(c => c.trim().startsWith('access_token='));
+     const refreshToken = document.cookie.split(';').find(c => c.trim().startsWith('refresh_token='));
+     const display = document.getElementById('tokens-display');
+     let text = '';
+     if (accessToken) {
+       const token = decodeURIComponent(accessToken.split('=')[1]);
+       text += `Access Token (first 50 chars):\n${token.substring(0, 50)}...\n\n`;
+     }
+     if (refreshToken) {
+       const token = decodeURIComponent(refreshToken.split('=')[1]);
+       text += `Refresh Token (first 50 chars):\n${token.substring(0, 50)}...\n`;
+     }
+     if (!text) text = 'No tokens found in cookies';
+     display.textContent = text;
+   }
+
+   function clearTokens() {
+     document.getElementById('tokens-display').textContent = '— cleared —';
+   }
+
+  // ── 3. Users ─────────────────────────────────────────────────────────────
+
+  function usersSearch() {
+    const query = document.getElementById('search-query').value;
+    req('GET', `/users/search?query=${encodeURIComponent(query)}`);
+  }
+
+  // ── 4. Profile ───────────────────────────────────────────────────────────
+
+  function profileGetById() {
+    const id = document.getElementById('profile-get-id').value.trim();
+    if (!id) return alert('Enter a profile id');
+    req('GET', `/profile/${encodeURIComponent(id)}`);
+  }
+
+  function profileSubmit(method) {
+    const body = {};
+
+    const name = document.getElementById('p-name').value.trim();
+    const age = document.getElementById('p-age').value.trim();
+    if (name) body.name = name;
+    if (age) body.age = Number(age);
+
+    body.gender = document.getElementById('p-gender').value;
+    body.seeking = document.getElementById('p-seeking').value;
+
+    const optStr = (id, key) => {
+      const v = document.getElementById(id).value.trim();
+      if (v) body[key] = v;
+    };
+
+    optStr('p-phone', 'phone');
+    optStr('p-bio', 'bio');
+    optStr('p-location', 'location');
+    optStr('p-college', 'college');
+    optStr('p-course', 'course');
+    optStr('p-major', 'major');
+    optStr('p-dorm', 'dorm');
+
+    const year = document.getElementById('p-year').value;
+    if (year) body.year = Number(year);
+
+    const sameMajorOnly = document.getElementById('p-sameMajorOnly').checked;
+    if (sameMajorOnly) body.sameMajorOnly = true;
+
+    const interestsRaw = document.getElementById('p-interests').value.trim();
+    if (interestsRaw) {
+      body.interests = interestsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    req(method, '/profile', body);
+  }
+
+  // ── 5. Photos ────────────────────────────────────────────────────────────
+
+  function photosUpload() {
+    const fileInput = document.getElementById('photo-files');
+    const isPrimary = document.getElementById('photo-isPrimary').checked;
+    if (!fileInput.files.length) return alert('Select at least one file');
+
+    const fd = new FormData();
+    for (const file of fileInput.files) {
+      fd.append('files', file);
+    }
+    fd.append('isPrimary', isPrimary ? 'true' : 'false');
+    req('POST', '/photos', fd, true);
+  }
+
+  async function photoDelete() {
+    const id = document.getElementById('photo-delete-id').value.trim();
+    if (!id) return alert('Enter a photoId');
+
+    // Fetch current photos first to check if this one is primary
+    const url = BASE + '/photos';
+    let photos = [];
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      photos = await res.json();
+    } catch (e) {
+      return showError('GET', url, e.message);
+    }
+
+    const target = photos.find(p => p.id === id);
+    if (!target) {
+      showResponse('DELETE', BASE + `/photos/${id}`, 404, { message: 'Photo not found in your library' });
+      return;
+    }
+
+    // Delete the photo
+    const delUrl = BASE + `/photos/${encodeURIComponent(id)}`;
+    let delData;
+    try {
+      const res = await fetch(delUrl, { method: 'DELETE', credentials: 'include' });
+      delData = await res.json();
+      showResponse('DELETE', delUrl, res.status, delData);
+    } catch (e) {
+      return showError('DELETE', delUrl, e.message);
+    }
+
+    // If it wasn't primary, nothing more to do
+    if (!target.isPrimary) return;
+
+    // It was primary — show picker with remaining photos
+    const remaining = photos.filter(p => p.id !== id);
+    if (remaining.length === 0) {
+      document.getElementById('primary-picker').style.display = 'none';
+      return;
+    }
+
+    const list = document.getElementById('primary-picker-list');
+    list.innerHTML = '';
+    remaining.forEach(p => {
+      const btn = document.createElement('button');
+      btn.textContent = p.url.split('/').pop(); // show filename
+      btn.title = p.id;
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;';
+
+      const img = document.createElement('img');
+      img.src = p.url;
+      img.style.cssText = 'width:60px;height:60px;object-fit:cover;';
+      btn.prepend(img);
+
+      btn.onclick = () => primaryPickerPick(p.id);
+      list.appendChild(btn);
+    });
+
+    document.getElementById('primary-picker').style.display = 'block';
+  }
+
+  async function primaryPickerPick(photoId) {
+    document.getElementById('primary-picker').style.display = 'none';
+    await req('PATCH', `/photos/${encodeURIComponent(photoId)}/primary`);
+  }
+
+  function primaryPickerSkip() {
+    document.getElementById('primary-picker').style.display = 'none';
+    showResponse('INFO', 'primary photo', 200, { message: 'Auto-assigned to most recently uploaded photo' });
+  }
+
+  // ── 6. Swipes ────────────────────────────────────────────────────────────
+
+  function swipeAction() {
+    const swipedId = document.getElementById('swipe-swipedId').value.trim();
+    const action = document.getElementById('swipe-action').value;
+    if (!swipedId) return alert('Enter a swipedId');
+    req('POST', `/swipes/${encodeURIComponent(swipedId)}/${encodeURIComponent(action)}`);
+  }
+
+  function swipeUnmatch() {
+    const userId = document.getElementById('unmatch-userId').value.trim();
+    if (!userId) return alert('Enter a matchedUserId');
+    req('DELETE', `/swipes/unmatch/${encodeURIComponent(userId)}`);
+  }
+
+  // ── 7. Matching ──────────────────────────────────────────────────────────
+
+  function matchingGet() {
+    const limit = document.getElementById('match-limit').value || '20';
+    req('GET', `/matches?limit=${encodeURIComponent(limit)}`);
+  }
+
+  // ── 8. Messages ──────────────────────────────────────────────────────────
+
+  function messagesGetByMatch() {
+    const matchId = document.getElementById('msg-get-matchId').value.trim();
+    if (!matchId) return alert('Enter a matchId');
+    req('GET', `/messages/match/${encodeURIComponent(matchId)}`);
+  }
+
+  function messagesSend() {
+    const body = {};
+    const matchId = document.getElementById('msg-send-matchId').value.trim();
+    const receiverId = document.getElementById('msg-send-receiverId').value.trim();
+    const content = document.getElementById('msg-send-content').value.trim();
+    if (matchId) body.matchId = matchId;
+    if (receiverId) body.receiverId = receiverId;
+    body.content = content;
+    req('POST', '/messages', body);
+  }
+
+  function messageMarkRead() {
+    const id = document.getElementById('msg-read-id').value.trim();
+    if (!id) return alert('Enter a messageId');
+    req('PATCH', `/messages/${encodeURIComponent(id)}/read`);
+  }
+
+  function messageMarkAllRead() {
+    const matchId = document.getElementById('msg-readall-matchId').value.trim();
+    if (!matchId) return alert('Enter a matchId');
+    req('PATCH', `/messages/match/${encodeURIComponent(matchId)}/read`);
+  }
+
+  function messageDelete() {
+    const id = document.getElementById('msg-delete-id').value.trim();
+    if (!id) return alert('Enter a messageId');
+    req('DELETE', `/messages/${encodeURIComponent(id)}`);
+  }
+
+  // ── 9. Blocks ────────────────────────────────────────────────────────────
+
+  function blockUser() {
+    const userId = document.getElementById('block-userId').value.trim();
+    if (!userId) return alert('Enter a userId');
+    const body = {};
+    const reason = document.getElementById('block-reason').value.trim();
+    if (reason) body.reason = reason;
+    req('POST', `/blocks/${encodeURIComponent(userId)}`, body);
+  }
+
+  function unblockUser() {
+    const userId = document.getElementById('unblock-userId').value.trim();
+    if (!userId) return alert('Enter a userId');
+    req('DELETE', `/blocks/${encodeURIComponent(userId)}`);
+  }
+
+  // ── 10. Reports ──────────────────────────────────────────────────────────
+
+  function reportUser() {
+    const userId = document.getElementById('report-userId').value.trim();
+    if (!userId) return alert('Enter a userId');
+    const body = { reason: document.getElementById('report-reason').value.trim() };
+    const details = document.getElementById('report-details').value.trim();
+    if (details) body.details = details;
+    req('POST', `/reports/${encodeURIComponent(userId)}`, body);
+  }
+
+  function reportUpdateStatus() {
+    const reportId = document.getElementById('report-update-id').value.trim();
+    if (!reportId) return alert('Enter a reportId');
+    const status = document.getElementById('report-update-status').value;
+    req('PATCH', `/reports/${encodeURIComponent(reportId)}/status`, { status });
+  }
+
+  // ── 11. Admin ────────────────────────────────────────────────────────────
+
+  function adminToggleActivation() {
+    const userId = document.getElementById('admin-toggle-userId').value.trim();
+    if (!userId) return alert('Enter a userId');
+    req('POST', `/admin/users/${encodeURIComponent(userId)}/activate`);
+  }
+
+  function adminResolveReport() {
+    const reportId = document.getElementById('admin-resolve-reportId').value.trim();
+    if (!reportId) return alert('Enter a reportId');
+    req('POST', `/admin/reports/${encodeURIComponent(reportId)}/resolve`);
+  }
+
+  // ── 12. WebSocket ────────────────────────────────────────────────────────
+
+  function wsLog(msg) {
+    const log = document.getElementById('ws-log');
+    if (log.textContent === '— no messages yet —') log.textContent = '';
+    log.textContent += `[${new Date().toISOString()}] ${msg}\n`;
+  }
+
+  function wsSetStatus(text) {
+    document.getElementById('ws-status').textContent = text;
+  }
+
+  function wsConnect() {
+    if (socket && socket.connected) {
+      wsLog('Already connected.');
+      return;
+    }
+    const userId = document.getElementById('ws-userId').value.trim();
+    if (!userId) return alert('Enter a userId');
+
+    socket = io('/', {
+      query: { userId },
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('connect', () => {
+      wsSetStatus('connected (' + socket.id + ')');
+      wsLog('Connected: ' + socket.id);
+    });
+
+    socket.on('disconnect', (reason) => {
+      wsSetStatus('disconnected');
+      wsLog('Disconnected: ' + reason);
+    });
+
+    socket.on('connect_error', (err) => {
+      wsSetStatus('error');
+      wsLog('Connection error: ' + err.message);
+    });
+
+    socket.on('newMessage', (data) => {
+      wsLog('newMessage: ' + JSON.stringify(data));
+    });
+
+    socket.on('messageSent', (data) => {
+      wsLog('messageSent: ' + JSON.stringify(data));
+    });
+  }
+
+  function wsDisconnect() {
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+      wsSetStatus('disconnected');
+    }
+  }
+
+  function wsSendMessage() {
+    if (!socket || !socket.connected) return alert('Not connected. Connect first.');
+    const payload = {};
+    const matchId = document.getElementById('ws-send-matchId').value.trim();
+    const receiverId = document.getElementById('ws-send-receiverId').value.trim();
+    const content = document.getElementById('ws-send-content').value.trim();
+    if (matchId) payload.matchId = matchId;
+    if (receiverId) payload.receiverId = receiverId;
+    payload.content = content;
+    socket.emit('sendMessage', payload);
+    wsLog('Sent sendMessage: ' + JSON.stringify(payload));
+  }
+</script>
+
+</body>
+</html>

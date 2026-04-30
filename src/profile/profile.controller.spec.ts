@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ProfileController } from './profile.controller.js';
-import { ProfileService } from './profile.service.js';
+import { ProfileController } from './profile.controller';
+import { ProfileService } from './profile.service';
 
 describe('ProfileController', () => {
   let controller: ProfileController;
@@ -23,3 +23,4 @@ describe('ProfileController', () => {
     expect(controller).toBeDefined();
   });
 });
+

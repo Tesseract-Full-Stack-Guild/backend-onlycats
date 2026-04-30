@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { UsersService } from '../users/users.service.js';
+import { AuthService } from './auth.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
 describe('AuthService', () => {
@@ -47,3 +47,4 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 });
+

@@ -1,20 +1,20 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { PrismaModule } from './prisma/prisma.module.js';
-import { AuthModule } from './auth/auth.module.js';
-import { UsersModule } from './users/users.module.js';
-import { ProfileModule } from './profile/profile.module.js';
-import { PhotosModule } from './photos/photos.module.js';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ProfileModule } from './profile/profile.module';
+import { PhotosModule } from './photos/photos.module';
 import { MessagesModule } from './messages/messages.module';
-import { MatchingModule } from './matching/matching.module.js';
-import { SwipesModule } from './swipes/swipes.module.js';
+import { MatchingModule } from './matching/matching.module';
+import { SwipesModule } from './swipes/swipes.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { HealthModule } from './health/health.module.js';
-import { BlocksModule } from './blocks/blocks.module.js';
-import { ReportsModule } from './reports/reports.module.js';
-import { NotificationsModule } from './notifications/notifications.module.js';
-import { AdminModule } from './admin/admin.module.js';
+import { HealthModule } from './health/health.module';
+import { BlocksModule } from './blocks/blocks.module';
+import { ReportsModule } from './reports/reports.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -42,3 +42,4 @@ import { AdminModule } from './admin/admin.module.js';
   providers: [AppService],
 })
 export class AppModule {}
+

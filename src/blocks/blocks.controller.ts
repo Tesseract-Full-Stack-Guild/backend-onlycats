@@ -8,9 +8,9 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { BlocksService } from './blocks.service.js';
+import { BlocksService } from './blocks.service';
 import { AuthGuard } from '@nestjs/passport';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import type { Request } from 'express';
 
 @UseGuards(AuthGuard('jwt'))
@@ -40,3 +40,4 @@ export class BlocksController {
     return this.blocksService.getBlockedUsers(currentUser.userId);
   }
 }
+

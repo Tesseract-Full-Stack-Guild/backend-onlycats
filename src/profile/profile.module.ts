@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ProfileService } from './profile.service.js';
-import { ProfileController } from './profile.controller.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
-import { MatchingModule } from '../matching/matching.module.js';
+import { ProfileService } from './profile.service';
+import { ProfileController } from './profile.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+import { MatchingModule } from '../matching/matching.module';
 
 @Module({
   imports: [PrismaModule, MatchingModule],
@@ -10,3 +10,4 @@ import { MatchingModule } from '../matching/matching.module.js';
   providers: [ProfileService],
 })
 export class ProfileModule {}
+

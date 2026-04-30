@@ -1,5 +1,5 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface InterestFrequency {
   [interest: string]: number;
@@ -219,7 +219,7 @@ export class MatchingService implements OnModuleInit {
     });
 
     if (!userProfile) {
-      throw new Error('Profile not found for user');
+      throw new NotFoundException('Profile not found — create a profile first');
     }
 
     // 2. Build candidate query with basic filters
@@ -376,3 +376,4 @@ export class MatchingService implements OnModuleInit {
     await this.precomputeInterestFrequencies();
   }
 }
+

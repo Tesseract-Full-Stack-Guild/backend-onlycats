@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateMessageDto } from './dto/create-message.dto.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 export interface Conversation {
   matchId: string;
@@ -311,3 +311,4 @@ export class MessagesService {
     return { success: true, message: 'Message deleted' };
   }
 }
+

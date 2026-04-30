@@ -8,10 +8,10 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { ProfileService } from './profile.service.js';
-import { CreateProfileDto } from './dto/create-profile.dto.js';
+import { ProfileService } from './profile.service';
+import { CreateProfileDto } from './dto/create-profile.dto';
 import type { Request } from 'express';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('profile')
@@ -44,3 +44,4 @@ export class ProfileController {
     return this.profileService.updateProfile(user.userId, dto);
   }
 }
+

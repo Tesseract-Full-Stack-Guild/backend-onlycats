@@ -9,10 +9,11 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
-import { UsersService } from './users.service.js';
+import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 import type { Request } from 'express';
 
 @UseGuards(AuthGuard('jwt'))
@@ -43,8 +44,9 @@ export class UsersController {
   }
 
   @Get('search')
-  async searchUsers(@Req() req: Request, @Body('query') query: string) {
+  async searchUsers(@Req() req: Request, @Query('query') query: string) {
     const user = req.user as JwtPayload;
     return this.usersService.searchUsers(query, user.userId);
   }
 }
+

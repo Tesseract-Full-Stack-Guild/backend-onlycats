@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ProfileService } from './profile.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { MatchingService } from '../matching/matching.service.js';
+import { ProfileService } from './profile.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { MatchingService } from '../matching/matching.service';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -41,3 +41,4 @@ describe('ProfileService', () => {
     expect(service).toBeDefined();
   });
 });
+

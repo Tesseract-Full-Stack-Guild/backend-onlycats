@@ -11,7 +11,7 @@ import {
 import { SwipesService } from './swipes.service';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import type { JwtPayload } from '../../types/express.js';
+import type { JwtPayload } from '../../types/express';
 
 @Controller('swipes')
 export class SwipesController {
@@ -66,3 +66,4 @@ export class SwipesController {
     return this.swipesService.unmatch(user.userId, matchedUserId);
   }
 }
+

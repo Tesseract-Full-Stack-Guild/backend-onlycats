@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateProfileDto } from './create-profile.dto.js';
+import { CreateProfileDto } from './create-profile.dto';
 import { IsOptional, IsNumber, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -18,3 +18,4 @@ export class UpdateProfileDto extends PartialType(CreateProfileDto) {
   @Max(180)
   longitude?: number;
 }
+

@@ -8,12 +8,12 @@ import {
   Req,
   Patch,
 } from '@nestjs/common';
-import { ReportsService } from './reports.service.js';
+import { ReportsService } from './reports.service';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles } from '../common/decorators/roles.decorator.js';
-import { RolesGuard } from '../common/guards/roles.guard.js';
-import { Role } from '../common/enums/roles.enum.js';
-import type { JwtPayload } from '../../types/express.js';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Role } from '../common/enums/roles.enum';
+import type { JwtPayload } from '../../types/express';
 import type { Request } from 'express';
 
 @Controller('reports')
@@ -55,3 +55,4 @@ export class ReportsController {
     return this.reportsService.updateReportStatus(reportId, status, adminId);
   }
 }
+

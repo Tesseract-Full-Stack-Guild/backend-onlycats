@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaController } from './prisma.controller.js';
-import { PrismaService } from './prisma.service.js';
+import { PrismaController } from './prisma.controller';
+import { PrismaService } from './prisma.service';
 
 describe('PrismaController', () => {
   let controller: PrismaController;
@@ -30,3 +30,4 @@ describe('PrismaController', () => {
     expect(controller).toBeDefined();
   });
 });
+
